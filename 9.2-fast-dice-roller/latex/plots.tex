@@ -1,0 +1,595 @@
+
+\documentclass{article}
+
+
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{xspace}
+\usepackage{float}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{xifthen}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{scalerel}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subfigure}
+\usepackage{multicol}
+\usepackage{xifthen}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usetikzlibrary{shapes,positioning,arrows,calc,automata,matrix,fit}
+
+
+% nicer looking epsilon
+\renewcommand{\epsilon}{\varepsilon}
+% Tools etc.
+\newcommand{\tool}[1]{\textsf{#1}\xspace}
+\newcommand{\storm}{\tool{Storm}}
+\newcommand{\prism}{\tool{prism}}
+\newcommand{\jani}{\tool{Jani}}
+\newcommand{\solver}[1]{\textsf{#1}\xspace}
+\newcommand{\method}[1]{\texttt{#1}\xspace}
+
+
+%%%%%%% Colors   
+\definecolor{myorange}{RGB}{230,159,0} 
+\definecolor{myblue}{RGB}{55,126,184}
+\definecolor{mygreen}{RGB}{77,175,74}
+\definecolor{myred}{RGB}{255,0,0}
+\definecolor{mypink}{RGB}{227,0,102}
+\definecolor{mygray}{rgb}{0.66, 0.66, 0.66}
+\definecolor{mypurple}{RGB}{122,111,172}
+
+%%%%% Tikz
+\tikzstyle{every node}=[font=\scriptsize]
+% Legend symbols
+\usepackage{etoolbox}
+\newrobustcmd*{\mytriangle}[1]{\tikz{\filldraw[draw=#1,fill=#1] (0,0) --
+		(0.2cm,0) -- (0.1cm,0.2cm);}}
+\newrobustcmd*{\mysquare}[1]{\tikz{\filldraw[draw=#1,fill=#1] (0,0) rectangle (0.2cm,0.2cm);}}
+\newrobustcmd*{\mycircle}[1]{\tikz{\filldraw[draw=#1,fill=#1] (0,0) circle [radius=0.1cm];}}
+\newrobustcmd*{\mydiamond}[1]{\tikz{\filldraw[draw=#1,fill=#1,scale=0.7] (0,0) --
+		(0.2cm,0) -- (0.1cm,0.15cm) -- (0,0) -- (0.1cm,-0.15cm) --(0.2cm,0) ;}}
+
+
+% Quantile plots
+\newlength{\plotwidth}
+\newlength{\plotheight}
+\setlength{\plotwidth}{6.5cm}
+\setlength{\plotheight}{1\plotwidth}
+\newcommand{\quantileplotlegendpos}{south west}
+\newcommand{\legendstyle}{at={(1,1.01)},anchor=north west}
+\newcommand{\legendcols}{1}
+\tikzset{tool/.code={%% only marks, possible
+% GMRES EVT 
+\ifthenelse{\equal{#1}{storm.sparse.gmres.0.001}}{\tikzset{myorange, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.gmres.1e-06}}{\tikzset{myorange, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.gmres-topo.0.001}}{\tikzset{myorange, dashed, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.gmres-topo.1e-06}}{\tikzset{myorange, dashed, line width=1pt}}{}%
+% GMRES stationary (classic: normal, EQSYS: dotted, EVT: dashed)
+\ifthenelse{\equal{#1}{storm.sparse.classic-gmres-topo.1e-06}}{\tikzset{myorange, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtreach-gmres-topo.1e-06}}{\tikzset{myorange, dotted, line width=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-gmres-topo.1e-06}}{\tikzset{myorange, dashed, line width=1pt}}{}%
+%
+% VI EVT
+\ifthenelse{\equal{#1}{storm.sparse.vi.0.001}}{\tikzset{myblue, line width=1pt}}{}%, mark=*, }}{}% mark size=1.2pt
+\ifthenelse{\equal{#1}{storm.sparse.vi.1e-06}}{\tikzset{myblue, line width=1pt}}{}%, mark=*, }}{}% mark size=1.2pt
+\ifthenelse{\equal{#1}{storm.sparse.vi-topo.0.001}}{\tikzset{myblue, dashed, line width=1pt}}{}%, mark=*, }}{}% mark size=1.2pt
+\ifthenelse{\equal{#1}{storm.sparse.vi-topo.1e-06}}{\tikzset{myblue, dashed, line width=1pt}}{}%, mark=*, }}{}% mark size=1.2pt
+%
+% II EVT
+\ifthenelse{\equal{#1}{storm.sparse.ii.0.001}}{\tikzset{mygreen, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ii.1e-06}}{\tikzset{mygreen, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ii-topo.0.001}}{\tikzset{mygreen, dashed, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ii-topo.1e-06}}{\tikzset{mygreen, dashed, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+% II Stationary
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-ii-topo.0.001}}{\tikzset{mygreen, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-ii-topo.0.001}}{\tikzset{mygreen, line width=1.3pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-ii-topo.0.001}}{\tikzset{mygreen, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+%
+% OVI EVT
+\ifthenelse{\equal{#1}{storm.sparse.ovi.0.001}}{\tikzset{mypurple, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ovi.1e-06}}{\tikzset{mypurple, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ovi-topo.0.001}}{\tikzset{mypurple, dashed, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ovi-topo.1e-06}}{\tikzset{mypurple, dashed, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+% OVI Stationary
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-ovi-topo.0.001}}{\tikzset{mypurple, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-ovi-topo.0.001}}{\tikzset{mypurple, line width=1.3pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-ovi-topo.0.001}}{\tikzset{mypurple, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+%
+% LU exact EVT
+\ifthenelse{\equal{#1}{storm.sparse.luexact.ignored}}{\tikzset{mypink,line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.luexact-topo.ignored}}{\tikzset{mypink, dashed, line width=1pt}}{}%
+% LU Stationary
+\ifthenelse{\equal{#1}{storm.sparse.classic-luexact-topo.ignored}}{\tikzset{mypink, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtreach-luexact-topo.ignored}}{\tikzset{mypink,dotted, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-luexact-topo.ignored}}{\tikzset{mypink, dashed, line width=1pt}}{}%
+% LU sparse
+\ifthenelse{\equal{#1}{storm.sparse.lu.0.001}}{\tikzset{darkgray,line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.lu-topo.0.001}}{\tikzset{darkgray, dashed, line width=1pt}}{}%
+% LU Stationary
+\ifthenelse{\equal{#1}{storm.sparse.classic-lu-topo.0.001}}{\tikzset{darkgray, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtreach-lu-topo.0.001}}{\tikzset{darkgray, dotted, line width=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-lu-topo.0.001}}{\tikzset{darkgray, dashed, line width=1pt}}{}%
+%
+% ELI EVT
+\ifthenelse{\equal{#1}{storm.sparse.topological-elimination.ignored}}{\tikzset{black, dashed, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.elimination.ignored}}{\tikzset{black, line width=1pt}}{}%
+%
+% stationary sds
+\ifthenelse{\equal{#1}{sds.default-abs.ap-naive.0.001}}{\tikzset{blue, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{sds.default-abs.ap-sample.0.001}}{\tikzset{blue, dashed, line width=1pt}}{}%
+%%% stationary prism
+\ifthenelse{\equal{#1}{prism.explicit-rel.default.0.001}}{\tikzset{blue , dotted, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{prism.sparse-rel.default.0.001}}{\tikzset{blue, line width=1.3pt}}{}%
+\ifthenelse{\equal{#1}{prism.hybrid-rel.default.0.001}}{\tikzset{blue,line width=1pt}}{}%
+\ifthenelse{\equal{#1}{prism.explicit-rel.default.1e-06}}{\tikzset{blue, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{prism.sparse-rel.default.1e-06}}{\tikzset{blue, line width=1.3pt}}{}%
+\ifthenelse{\equal{#1}{prism.hybrid-rel.default.1e-06}}{\tikzset{blue, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{prism.default.default.0.001}}{\tikzset{blue,line width=1pt}}{}%
+\ifthenelse{\equal{#1}{prism.default.default.1e-06}}{\tikzset{blue,line width=1pt}}{}%
+% greatspn
+\ifthenelse{\equal{#1}{greatspn.default.ggsc.0.001}}{\tikzset{myred, line width=1pt}}{}%
+}}
+
+\newcommand{\quantileplot}[4]{%
+	\begin{tikzpicture}
+	\begin{axis}[
+	width=\plotwidth,
+	height=\plotheight,
+	xmin=10,
+	xmax=#4+1,
+	% not xmode=log,
+	ymax=2300, 
+	ytick= {1, 10, 100, 1000 },
+	yticklabels={$\le$1, $10^1$, $10^2$, $10^3$},
+	axis x line=bottom,
+	ymin=1,
+	axis y line=left,
+	ymode=log,
+	xlabel=\footnotesize{solved instances (out of #4)},
+	ylabel=\footnotesize{time in seconds},
+	yticklabel style={font=\footnotesize},
+	xticklabel style={font=\footnotesize},
+	legend columns = \legendcols,
+	legend style={\legendstyle,font=\scriptsize,
+		nodes={scale=1, transform shape},inner sep=2pt},
+	%every axis plot/.append style={ultra thick}, for presentation
+	legend cell align={left}
+	]
+	\foreach \tool in {#2}{%
+		\edef\loopbody{ 
+			\noexpand\addplot[tool=\tool] table [x=n,y=\tool shifted, col sep=semicolon] {#1};
+		}
+		\loopbody
+	}
+	\draw[densely dotted] (axis cs: 0,10) -- (axis cs: 100,10);
+	\draw[densely dotted] (axis cs: 0,100) -- (axis cs: 100,100);
+	\draw[densely dotted] (axis cs: 0,1000) -- (axis cs: 100,1000);
+	%\draw[densely dotted] (axis cs: 0,1200) -- (axis cs: 100,1200);
+	%\draw[densely dotted] (axis cs: 0,1800) -- (axis cs: 100,1800);
+	\legend{#3}
+	\end{axis}
+	\end{tikzpicture}%
+}
+
+
+
+% Scatter plots
+\newlength{\scatterplotsize}
+\setlength{\scatterplotsize}{4.3cm}
+\newlength{\numberruntimeplotheight}
+\setlength{\numberruntimeplotheight}{\scatterplotsize}
+\newlength{\numberruntimeplotwidth}
+\setlength{\numberruntimeplotwidth}{\linewidth}
+
+\tikzset{scatool/.code={%% only marks, possible
+% LU  EVT
+\ifthenelse{\equal{#1}{storm.sparse.luexact.ignored}}{\tikzset{mypink, only marks, mark=x, mark size=2pt, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.lu.0.001}}{\tikzset{darkgray, only marks, mark=Mercedes star, mark size=2.5pt,line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.luexact-topo.ignored}}{\tikzset{mypink,only marks, mark=x, mark size=2pt, line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.lu-topo.0.001}}{\tikzset{darkgray, only marks, mark=Mercedes star, mark size=2.5pt, line width=1pt}}{}%
+% LU topo (stationary)   topo only
+\ifthenelse{\equal{#1}{storm.sparse.classic-luexact-topo.ignored}}{\tikzset{mypink, only marks, mark=x, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+\ifthenelse{\equal{#1}{storm.sparse.evtreach-luexact-topo.ignored}}{\tikzset{mypink, only marks, mark=x, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-luexact-topo.ignored}}{\tikzset{mypink, only marks, mark=o, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+\ifthenelse{\equal{#1}{storm.sparse.classic-lu-topo.0.001}}{\tikzset{darkgray, only marks, mark=Mercedes star, mark size=2.5pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+\ifthenelse{\equal{#1}{storm.sparse.evtreach-lu-topo.0.001}}{\tikzset{darkgray, only marks, mark=x, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-lu-topo.0.001}}{\tikzset{darkgray, only marks, mark=pentagon, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+%%
+% VI EVT
+\ifthenelse{\equal{#1}{storm.sparse.vi.0.001}}{\tikzset{myblue, only marks, mark=diamond, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+\ifthenelse{\equal{#1}{storm.sparse.vi.1e-06}}{\tikzset{myblue, only marks, mark=diamond, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+\ifthenelse{\equal{#1}{storm.sparse.vi-topo.0.001}}{\tikzset{myblue, only marks, mark=diamond, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+\ifthenelse{\equal{#1}{storm.sparse.vi-topo.1e-06}}{\tikzset{myblue, only marks, mark=diamond, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+
+% II 
+\ifthenelse{\equal{#1}{storm.sparse.ii.0.001}}{\tikzset{mygreen, only marks,mark=triangle, mark size=2pt,line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ii.1e-06}}{\tikzset{mygreen, only marks,mark=triangle, mark size=2pt,line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ii-topo.0.001}}{\tikzset{mygreen, only marks,mark=triangle, mark size=2pt,line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ii-topo.1e-06}}{\tikzset{mygreen, only marks,mark=triangle, mark size=2pt,line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+% II (stationary)  topo only
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-ii-topo.0.001}}{\tikzset{mygreen, only marks,mark=triangle, mark size=2pt, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-ii-topo.1e-06}}{\tikzset{mygreen, only marks,mark=triangle, mark size=2pt, line width=1pt}}{}%, mark=*, mark size=1.3pt}}{}%
+
+% OVI 
+\ifthenelse{\equal{#1}{storm.sparse.ovi.0.001}}{\tikzset{mypurple, only marks,mark=square, mark size=2pt,line width=0.7pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ovi.1e-06}}{\tikzset{mypurple, only marks,mark=square, mark size=2pt,line width=0.7pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ovi-topo.0.001}}{\tikzset{mypurple, only marks,mark=square, mark size=2pt,line width=0.7pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.ovi-topo.1e-06}}{\tikzset{mypurple, only marks,mark=square, mark size=2pt,line width=0.7pt}}{}%, mark=*, mark size=1.3pt}}{}%
+% OVI (stationary)  topo only
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-ovi-topo.0.001}}{\tikzset{mypurple, only marks,mark=square, mark size=2pt, line width=0.7pt}}{}%, mark=*, mark size=1.3pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-ovi-topo.1e-06}}{\tikzset{mypurple, only marks,mark=square, mark size=2pt, line width=0.7pt}}{}%, mark=*, mark size=1.3pt}}{}%
+
+%gmres
+\ifthenelse{\equal{#1}{storm.sparse.gmres.0.001}}{\tikzset{myorange, only marks, mark=+, mark size=2pt,line width=1pt}}{}%	
+\ifthenelse{\equal{#1}{storm.sparse.gmres.1e-06}}{\tikzset{myorange, only marks, mark=+, mark size=2pt,line width=1pt}}{}%	
+\ifthenelse{\equal{#1}{storm.sparse.gmres-topo.0.001}}{\tikzset{myorange, only marks, mark=+, mark size=2pt,line width=1pt}}{}%	
+\ifthenelse{\equal{#1}{storm.sparse.gmres-topo.1e-06}}{\tikzset{myorange, only marks, mark=+, mark size=2pt,line width=1pt}}{}%	
+% GMRES (stationary)  topo only
+\ifthenelse{\equal{#1}{storm.sparse.classic-gmres-topo.0.001}}{\tikzset{myorange, only marks, mark=+, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+\ifthenelse{\equal{#1}{storm.sparse.classic-gmres-topo.1e-06}}{\tikzset{myorange, only marks, mark=+, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+\ifthenelse{\equal{#1}{storm.sparse.evtreach-gmres-topo.0.001}}{\tikzset{myorange, only marks, mark=o, mark size=2pt,line width=1pt}}{}%	
+\ifthenelse{\equal{#1}{storm.sparse.evtreach-gmres-topo.1e-06}}{\tikzset{myorange, only marks, mark=o, mark size=2pt,line width=1pt}}{}%
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-gmres-topo.0.001}}{\tikzset{myorange, only marks, mark=diamond, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+\ifthenelse{\equal{#1}{storm.sparse.evtfull-gmres-topo.1e-06}}{\tikzset{myorange, only marks, mark=diamond, mark size=2pt, line width=1pt}}{}%, mark=*, }}{}% mark size=2pt
+%\ifthenelse{\equal{#1}{megg.solve}}{\tikzset{myorange, only marks, mark=square, mark size=1.3pt,line width=1pt}}{}%
+
+% greatspn
+\ifthenelse{\equal{#1}{greatspn.default.ggsc.0.001}}{\tikzset{teal, only marks, mark=pentagon, mark size=2pt, line width=1pt}}{}%
+
+}}
+\newcommand{\precisionplot}[7]{%
+	\begin{tikzpicture}
+		\begin{axis}[
+			width=\plotwidth,
+			height=\plotheight,
+			xmin=0,
+			%xmax=200, 
+			ymin=0.00000005,
+			ymax=15,
+			axis x line=bottom,
+			axis y line=left,
+			ytick= {0.000001,0.00001,0.0001, 0.001, 0.01,0.1},
+			ymode=log,
+			%yticklabels={0.000001., 0.001, 0.01, 0.1, $\geq$1},
+			%tick = {$\leq$0.00001, } 
+			extra y ticks = {0.0000001, 1, 5},
+			extra y tick labels = {$\leq10^{-7}$, $\geq10^0$, no res.},
+			xmode=log,
+			%xtick=data,
+			xlabel= #4,
+			ylabel= #5,
+			%x label style={at={(axis description cs:0.5,0.1)},anchor=north},
+			y label style={at={(axis description cs:-0.12,0.5)},anchor=north},
+			yticklabel style={font=\tiny},
+			xticklabel style={font=\tiny},
+			legend columns=\legendcols,
+			legend style={\legendstyle,font=\scriptsize,
+			nodes={scale=1, transform shape},inner sep=2pt},
+			%legend columns=\precisionplotlegendcols,
+			%every axis plot/.append style={ultra thick}, for presentation
+			legend cell align={left}, 
+			table/col sep=semicolon,
+			]
+			\foreach \scatool in {#2}{%
+				\edef\loopbody{ 
+					\noexpand\addplot[scatool=\scatool ] table [x={#6},y=\scatool, col sep=semicolon] {#1};
+				}
+				\loopbody
+			}
+			\draw[densely dotted] (axis cs: 0,0.0000001) -- (axis cs: 10000000000,0.0000001);
+			\draw[densely dotted] (axis cs: 0,0.000001) -- (axis cs: 1000000000000,0.000001);
+			\draw[densely dotted] (axis cs: 0,0.001) -- (axis cs: 1000000000000,0.001);
+			\draw[densely dotted] (axis cs: 0,1) -- (axis cs: 1000000000000,1);
+			\draw[gray] (axis cs: 0,5) -- (axis cs: 1000000000000,5);
+			%\draw[densely dotted] (axis cs: 0,15) -- (axis cs: 1000000000000,15);
+			%\draw[densely dotted] (axis cs: 0,1800) -- (axis cs: 100,1800);
+			\legend{#3}
+			\addlegendimage{white, only marks}
+			\addlegendentry{\qquad#7}
+		\end{axis}
+	\end{tikzpicture}%
+}
+
+\newcommand{\numberruntimeplotxmode}{log}
+\newcommand{\numberruntimeplotxmin}{0}
+\newcommand{\numberruntimeplot}[7]{%
+	\begin{tikzpicture}
+		\begin{axis}[
+			width=\numberruntimeplotwidth,
+			height=\numberruntimeplotheight,
+			xmin=\numberruntimeplotxmin,
+			xmax=#7,
+			axis x line=bottom,
+			ymin=1,
+			ymax=9000,
+			ytick={0.1,10,1000},
+			axis y line=left,
+			ymode=log,
+			extra y ticks = {1, 6000}, %20000
+			extra y tick labels = {$\leq 1$, no res.}, %n/a -20000
+			xmode=\numberruntimeplotxmode,
+			%xtick=data,
+			xlabel= #4,
+			ylabel= #5,
+			xlabel style={font=\scriptsize},
+			ylabel style={yshift=-6pt, font=\scriptsize},
+			yticklabel style={font=\scriptsize},
+			xticklabel style={font=\scriptsize},
+			legend columns=\legendcols,
+				legend style={\legendstyle, font=\scriptsize,
+				nodes={scale=1, transform shape},inner sep=2pt},
+			%every axis plot/.append style={ultra thick}, for presentation
+			legend cell align={left}, 
+			table/col sep=semicolon,
+			]
+			\foreach \scatool in {#2}{%
+				\edef\loopbody{ 
+					\noexpand\addplot[scatool=\scatool ] table [x={#6},y=\scatool, col sep=semicolon] {#1};
+				}
+				\loopbody
+			}
+			\draw[densely dotted] (axis cs: 0,10) -- (axis cs: #7,10);
+			\draw[densely dotted] (axis cs: 0,100) -- (axis cs: #7,100);
+			\draw[densely dotted] (axis cs: 0,1000) -- (axis cs: #7,1000);
+			\draw[gray] (axis cs: 0,6000) -- (axis cs: #7,6000);
+			\legend{#3}
+		\end{axis}
+%		\pgfresetboundingbox
+%		\useasboundingbox (-1,-0.85) rectangle (4.5,4.9);
+	\end{tikzpicture}%
+}
+
+
+
+
+\newcommand{\scatterplotstorm}[6]{%
+	\begin{tikzpicture}
+	\begin{axis}[
+		width=\scatterplotsize,
+		height=\scatterplotsize,
+		axis equal image,
+		xmin=1,
+		ymin=1,
+		ymax=30000,
+		xmax=30000,
+		xmode=log,
+		ymode=log,
+		axis x line=bottom,
+		axis y line=left,
+		xtick={10,100,1000},
+		ytick={10,100,1000},
+		%xticklabels={0.1,1,10,100,1000},
+		extra x ticks = {1, 6000, 20000}, %20000
+		extra x tick labels = {$\leq 1$, OOR, INC}, %n/a
+		extra y ticks = {1, 6000, 20000}, %20000
+		extra y tick labels = {$\leq 1$, OOR, INC}, %n/a
+		% TO_VALUE = -4000 # timeout
+		%extra x tick style = {grid = major},
+		%ytick={0.1,1,10,100,1000},
+		%yticklabels={0.1,1,10,100,1000},
+		%extra y ticks = {-4000,-7000,-12000},
+		%extra y tick labels = {\raisebox{4000ex}{OOR/TO},NA/NS,INC/UN},
+		%extra y tick style = {grid = major},
+		xlabel={#3},
+		xlabel style={yshift=8pt, font=\scriptsize},
+		ylabel={#5},
+		ylabel style={yshift=-7pt, font=\scriptsize},
+		yticklabel style={font=\scriptsize},
+		xticklabel style={rotate=290,anchor=west,font=\scriptsize},
+		%legend pos=outer north east,
+		legend columns=\legendcols,
+		legend style={font=\scriptsize,\legendstyle, 
+				nodes={scale=1, transform shape},
+				inner sep=1.5pt},
+			legend cell align={left}
+	]
+	\addplot[
+	scatter,
+	only marks,
+	scatter/classes={
+		dtmc={mark=square*,myblue,mark size=1},
+		%ctmc={mark=square*,myblue,mark size=1}
+		ctmc={mark=diamond*,mypink,mark size=1.25}
+	},
+	scatter src=explicit symbolic
+	]%
+	table [col sep=semicolon,x=#2,y=#4,meta=Type] {#1};
+	\ifthenelse{\NOT\equal{#6}{false}}{\legend{DTMC, CTMC}}{}
+	\addplot[no marks] coordinates {(0.01,0.01) (6000,6000) };
+	\addplot[no marks, densely dotted] coordinates {(0.1,1) (600,6000)};
+	\addplot[no marks, densely dotted] coordinates {(1,0.1) (6000,600)};
+	\draw[densely dotted] (axis cs: 0.1,6000) -- (axis cs: 20000,6000);
+	\draw[densely dotted] (axis cs: 0.1,20000) -- (axis cs: 20000,20000);
+	\draw[densely dotted] (axis cs: 6000,0.1) -- (axis cs: 6000, 20000);
+	\draw[densely dotted] (axis cs: 20000, 0.1) -- (axis cs: 20000,20000);
+	\end{axis}
+%	\pgfresetboundingbox
+%		\useasboundingbox (-1,-1.0) rectangle (2.9,3.5);
+	\end{tikzpicture}
+}
+
+\newcommand{\scatterplotevtcat}[6]{%
+	\begin{tikzpicture}
+		% \path[use as bounding box,draw=red] (-1,-1.1) rectangle (2.9,3.4);
+		
+		\begin{axis}[
+			width=\scatterplotsize,
+			height=\scatterplotsize,
+			axis equal image,
+			xmin=1,
+			ymin=1,
+			ymax=9000,
+			xmax=9000,
+			xmode=log,
+			ymode=log,
+			axis x line=bottom,
+			axis y line=left,
+			xtick={10,100,1000},
+			ytick={10,100,1000},
+			%xticklabels={0.1,1,10,100,1000},
+			extra x ticks = {1, 6000}, %20000
+			extra x tick labels = {$\leq 1$, no res.}, %n/a
+			extra y ticks = {1, 6000}, %20000
+			extra y tick labels = {$\leq 1$, no res.}, %n/a
+			% TO_VALUE = -4000 # timeout
+			%extra x tick style = {grid = major},
+			%ytick={0.1,1,10,100,1000},
+			%yticklabels={0.1,1,10,100,1000},
+			%extra y ticks = {-4000,-7000,-12000},
+			%extra y tick labels = {\raisebox{4000ex}{OOR/TO},NA/NS,INC/UN},
+			%extra y tick style = {grid = major},
+			xlabel={#3},
+			xlabel style={yshift=12pt,font=\scriptsize},
+			xticklabel style={font=\scriptsize,rotate=290}, 
+			ylabel={#5},
+			ylabel style={yshift=-14pt, font=\scriptsize},
+			yticklabel style={font=\scriptsize},
+			%legend pos=outer north east,
+			legend columns=\legendcols,
+				legend style={\legendstyle, font=\scriptsize,
+				nodes={scale=1, transform shape},inner sep=2pt},
+			]
+			\addplot[
+			scatter,
+			only marks,
+			scatter/classes={
+				acyclic={mark=triangle*,mygreen,mark size=2},
+				cyclic={mark=diamond*,myorange,mark size=2},
+				{fully-connected}={mark=*,myred,mark size=2},
+				{no-transient}={mark=*,black,mark size=4}
+			},
+			scatter src=explicit symbolic, 
+			% not working: 
+			% visualization depends on={transient-states}\as\tsm, 
+			% scatter/@pre marker code/.append style={/tikz/mark size=\tsm
+			]%
+			table [col sep=semicolon,x=#2,y=#4,meta={evt-category}] {#1};
+			\ifthenelse{\NOT\equal{#6}{false}}{\legend{acyclic, cyclic, strongly connected}}{}
+			\addplot[no marks] coordinates {(0.01,0.01) (6000,6000) };
+			\addplot[no marks, densely dotted] coordinates {(0.1,1) (600,6000)};
+			\addplot[no marks, densely dotted] coordinates {(1,0.1) (6000,600)};
+			\draw[gray] (axis cs: 0.1,6000) -- (axis cs: 20000,6000);
+			\draw[gray] (axis cs: 6000,0.1) -- (axis cs: 6000, 20000);
+	\end{axis}
+\pgfresetboundingbox
+\ifthenelse{\equal{#6}{false}}
+{\useasboundingbox (-1.3,-1.5) rectangle (2.9,3);}
+{\useasboundingbox (-1.3,-1.5) rectangle (2.9,3.5);}
+	\end{tikzpicture}
+}
+
+\newcommand{\scatterplotstationarycat}[6]{%
+	\begin{tikzpicture}
+	\begin{axis}[
+			width=\scatterplotsize,
+			height=\scatterplotsize,
+			axis equal image,
+			xmin=1,
+			ymin=1,
+			ymax=9000,
+			xmax=9000,
+			xmode=log,
+			ymode=log,
+			axis x line=bottom,
+			axis y line=left,
+			xtick={10,100,1000},
+			ytick={10,100,1000},
+			extra x ticks = {1, 6000}, %20000
+			extra x tick labels = {$\leq 1$, no res.}, %n/a
+			extra y ticks = {1, 6000}, %20000
+			extra y tick labels = {$\leq 1$, no res.}, %n/a
+			xlabel={#3},
+			xlabel style={yshift=12pt,font=\scriptsize},
+			xticklabel style={font=\scriptsize,rotate=290}, 
+			ylabel={#5},
+			ylabel style={yshift=-14pt, font=\scriptsize},
+			yticklabel style={font=\scriptsize},
+			legend columns=\legendcols,
+				legend style={\legendstyle, font=\scriptsize,
+				nodes={scale=1, transform shape},inner sep=2pt},
+			]
+			\addplot[
+			scatter,
+			only marks,
+			scatter/classes={
+				{singleton-recurrent}={mark=triangle*,mygreen,mark size=2},
+				mixed={mark=diamond*,myorange,mark size=2},
+				{fully-recurrent}={mark=*,myred,mark size=2}
+			},
+			scatter src=explicit symbolic
+			]
+			table [col sep=semicolon,x=#2,y=#4,meta={stationary-category}] {#1};
+			\ifthenelse{\NOT\equal{#6}{false}}{\legend{tivial BSCCs, non-trivial BSCCs,strongly connected}}{}
+			\addplot[no marks] coordinates {(0.01,0.01) (6000,6000) };
+			\addplot[no marks, densely dotted] coordinates {(0.1,1) (600,6000)};
+			\addplot[no marks, densely dotted] coordinates {(1,0.1) (6000,600)};
+			\draw[gray] (axis cs: 0.1,6000) -- (axis cs: 20000,6000);
+			\draw[gray] (axis cs: 6000,0.1) -- (axis cs: 6000, 20000);
+	\end{axis}
+\pgfresetboundingbox
+\ifthenelse{\equal{#6}{false}}
+{\useasboundingbox (-1.3,-1.5) rectangle (2.9,3);}
+{\useasboundingbox (-1.3,-1.5) rectangle (2.9,3.5);}
+	\end{tikzpicture}
+}
+\usepackage{graphicx}%
+\usepackage{multirow}%
+\usepackage{amsmath,amssymb,amsfonts}%
+\usepackage{amsthm}%
+\usepackage{mathrsfs}%
+\usepackage[title]{appendix}%
+\usepackage{xcolor}%
+\usepackage{textcomp}%
+\usepackage{manyfoot}%
+\usepackage{datetime}
+%%%%
+
+
+\begin{document}
+
+\title{Results for Section 9.2}
+\date{Compiled on \today~at \currenttime}
+
+\maketitle
+
+\setcounter{figure}{7}    
+
+
+\begin{figure}[hp]
+    \centering
+	\setlength{\numberruntimeplotwidth}{\linewidth}
+	\renewcommand{\legendcols}{3}
+	\renewcommand{\legendstyle}{at={(0.45,1.05)},anchor=south}
+	{\numberruntimeplot{lumbroso.csv}%
+	{
+	storm.sparse.classic-luexact-topo.ignored,
+	storm.sparse.classic-gmres-topo.1e-06,
+	storm.sparse.evtfull-luexact-topo.ignored,
+	storm.sparse.evtfull-ii-topo.0.001,
+	storm.sparse.evtfull-ovi-topo.0.001
+	}
+	%storm.sparse.classic-lu-topo.0.001}
+	%storm.sparse.evtreach-gmres-topo.1e-06,
+	%storm.sparse.evtfull-gmres-topo.1e-06}%
+	{
+	{\method{Classic/LU$^X$}}, 
+	{\method{Classic/gmres}},
+	{\method{EVTfull/LU$^X$}}, 
+	{\method{EVTfull/II}},
+	{\method{EVTfull/OVI}}}
+	{$N$}
+	{time in seconds}{Parameters}{300000}%64000 = max N
+	}
+	\caption{Verification times for Lumbroso's Fast Dice Roller.}\label{fig:runtime_lumbroso}
+\end{figure}
+
+
+\end{document}
