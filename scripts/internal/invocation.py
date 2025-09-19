@@ -16,7 +16,7 @@ class Invocation(object):
         self.time_limit = None
         self.export = None
 
-        self.export_value_file = None # not saved
+        self.export_value_file = "export" # not saved
 
         if invocation_json is not None:
             self.benchmark_id = invocation_json["benchmark-id"]
